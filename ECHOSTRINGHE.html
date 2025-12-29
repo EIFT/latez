@@ -1,0 +1,779 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echo - AI Mentor DSA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Verdana, sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: #1a1a1a;
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .echo-avatar {
+            width: 80px;
+            height: 80px;
+            background: #22c55e;
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .timer-bar {
+            height: 4px;
+            background: #e5e5e5;
+            position: relative;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: #22c55e;
+            width: 100%;
+            transition: width 1s linear;
+        }
+
+        .timer-fill.warning {
+            background: #f59e0b;
+        }
+
+        .timer-fill.danger {
+            background: #ef4444;
+        }
+
+        .chat-area {
+            padding: 24px;
+            min-height: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.echo {
+            text-align: left;
+        }
+
+        .message.echo .bubble {
+            background: #f0f0f0;
+            color: #1a1a1a;
+            padding: 14px 18px;
+            border-radius: 18px 18px 18px 4px;
+            display: inline-block;
+            max-width: 90%;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message.user .bubble {
+            background: #1a1a1a;
+            color: white;
+            padding: 14px 18px;
+            border-radius: 18px 18px 4px 18px;
+            display: inline-block;
+            max-width: 90%;
+            font-size: 15px;
+        }
+
+        .words-area {
+            padding: 20px 24px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .words-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .words-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .word-btn {
+            background: white;
+            border: 2px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 14px 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .word-btn:hover {
+            border-color: #22c55e;
+            background: #f0fdf4;
+        }
+
+        .word-btn:active {
+            transform: scale(0.95);
+            background: #22c55e;
+            color: white;
+            border-color: #22c55e;
+        }
+
+        .word-btn.correct {
+            background: #22c55e;
+            color: white;
+            border-color: #22c55e;
+            animation: celebrate 0.5s ease;
+        }
+
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .word-btn.needs-work {
+            background: #fef3c7;
+            border-color: #f59e0b;
+        }
+
+        .phrases-area {
+            padding: 16px 24px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .phrases-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .phrase-btn {
+            background: #1a1a1a;
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .phrase-btn:hover {
+            background: #333;
+        }
+
+        .phrase-btn:active {
+            transform: scale(0.95);
+        }
+
+        .controls {
+            padding: 16px 24px;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-listen {
+            background: #22c55e;
+            color: white;
+            border: none;
+        }
+
+        .btn-listen:hover {
+            background: #16a34a;
+        }
+
+        .btn-listen.listening {
+            background: #1a1a1a;
+            animation: listening 1s ease-in-out infinite;
+        }
+
+        @keyframes listening {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .btn-reset {
+            background: white;
+            color: #666;
+            border: 2px solid #e5e5e5;
+        }
+
+        .btn-reset:hover {
+            border-color: #999;
+        }
+
+        .gesture-hint {
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin: 12px 24px;
+            font-size: 13px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .gesture-icon {
+            font-size: 24px;
+        }
+
+        .status-bar {
+            padding: 12px 24px;
+            background: #f9fafb;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .session-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .session-icon {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+        }
+
+        .session-icon.warning {
+            background: #f59e0b;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 400px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal h2 {
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .modal p {
+            color: #666;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .modal-btn {
+            background: #22c55e;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: #e5e5e5;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+
+        .dot.active {
+            background: #22c55e;
+        }
+
+        @media (max-width: 500px) {
+            .words-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .chat-area {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="echo-avatar">🎤</div>
+            <h1>Echo</h1>
+            <p>Il tuo amico delle parole inglesi</p>
+        </div>
+
+        <div class="timer-bar">
+            <div class="timer-fill" id="timerFill"></div>
+        </div>
+
+        <div class="chat-area" id="chatArea">
+            <div class="message echo">
+                <div class="bubble" id="welcomeMsg">Ciao! Sono Echo, il tuo amico delle parole inglesi. Oggi ci esercitiamo insieme. Quale parola vuoi provare?</div>
+            </div>
+        </div>
+
+        <div class="gesture-hint" id="gestureHint" style="display: none;">
+            <span class="gesture-icon" id="gestureIcon">🌳</span>
+            <span id="gestureText">Mentre dici TREE, fai l'albero con le braccia in alto!</span>
+        </div>
+
+        <div class="words-area">
+            <div class="words-label">Parole da praticare</div>
+            <div class="words-grid" id="wordsGrid">
+                <button class="word-btn" data-word="tree">🌳 tree</button>
+                <button class="word-btn" data-word="water">💧 water</button>
+                <button class="word-btn" data-word="animal">🦊 animal</button>
+                <button class="word-btn" data-word="mountain">🏔️ mountain</button>
+                <button class="word-btn" data-word="sky">☁️ sky</button>
+                <button class="word-btn" data-word="green">🟢 green</button>
+                <button class="word-btn" data-word="blue">🔵 blue</button>
+                <button class="word-btn" data-word="brown">🟤 brown</button>
+            </div>
+        </div>
+
+        <div class="phrases-area">
+            <div class="words-label">Frasi</div>
+            <div class="phrases-grid">
+                <button class="phrase-btn" data-phrase="I see a">I see a...</button>
+                <button class="phrase-btn" data-phrase="It is">It is...</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-listen" id="listenBtn">🎤 Ascolta me</button>
+            <button class="btn btn-reset" id="resetBtn">🔄 Ricomincia</button>
+        </div>
+
+        <div class="status-bar">
+            <div class="session-info">
+                <span class="session-icon" id="sessionIcon"></span>
+                <span id="sessionStatus">Sessione attiva</span>
+            </div>
+            <div id="wordCount">Parole: 0/8</div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2>⏰ Tempo quasi finito!</h2>
+            <p>Hai fatto un lavoro stupendo! Sei pronto per parlare davanti ai compagni.</p>
+            <p style="margin-top: 12px; font-size: 13px; color: #22c55e;">"Ricorda: tu sai queste parole. Vai e fai sentire la tua voce!"</p>
+            <button class="modal-btn" id="modalBtn">Grazie Echo!</button>
+        </div>
+    </div>
+
+    <script>
+        // Echo AI Mentor - Interactive Interface
+        const Echo = {
+            lexicon: {
+                tree: { icon: '🌳', difficulty: 'media', errors: ['TEER'], gesture: 'Braccia alzate come rami', strategy: 'Scandire T-R-EE come trenino' },
+                water: { icon: '💧', difficulty: 'media', errors: ['WADER'], gesture: 'Mani che ondeggiano come onde', strategy: 'Dividere WA-TER' },
+                animal: { icon: '🦊', difficulty: 'alta', errors: ['ANINAL', 'AMINAL'], gesture: 'Orecchie da coniglio', strategy: 'A-NI-MAL (3 sillabe)' },
+                mountain: { icon: '🏔️', difficulty: 'molto-alta', errors: ['MOUTAIN'], gesture: 'Braccia a triangolo', strategy: 'MAUN-TIN (2 blocchi)' },
+                sky: { icon: '☁️', difficulty: 'bassa', errors: [], gesture: 'Mano che indica in alto', strategy: 'Semplice: SKY!' },
+                green: { icon: '🟢', difficulty: 'alta', errors: ['GRIEN'], gesture: 'Bocca sorridente', strategy: 'GR-EEEE-N!' },
+                blue: { icon: '🔵', difficulty: 'media', errors: ['DLUE', 'PLUE'], gesture: 'Indicare il cielo', strategy: 'BBBB vibrano!' },
+                brown: { icon: '🟤', difficulty: 'molto-alta', errors: ['BOWN'], gesture: 'Toccare il banco', strategy: 'BRRR freddo: B-R-OWN' }
+            },
+            phrases: {
+                'I see a': { response: 'Perfetto! Ora diciamo insieme: I...see... a...{word}. Prova tu!' },
+                'It is': { response: 'Ottimo! Prova: It is...{word}!' }
+            },
+            sessionTime: 240, // 4 minutes
+            currentTime: 240,
+            practicedWords: new Set(),
+            recognition: null,
+            synthesis: window.speechSynthesis,
+
+            init() {
+                this.setupSpeechRecognition();
+                this.setupEventListeners();
+                this.startTimer();
+                this.speak("Ciao! Sono Echo, il tuo amico delle parole inglesi. Oggi ci esercitiamo insieme. Quale parola vuoi provare?");
+            },
+
+            setupSpeechRecognition() {
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    this.recognition = new SpeechRecognition();
+                    this.recognition.lang = 'en-US';
+                    this.recognition.continuous = false;
+                    this.recognition.interimResults = false;
+
+                    this.recognition.onresult = (event) => {
+                        const transcript = event.results[0][0].transcript.toLowerCase().trim();
+                        this.handleUserSpeech(transcript);
+                    };
+
+                    this.recognition.onerror = (event) => {
+                        console.log('Speech recognition error:', event.error);
+                        if (event.error !== 'no-speech') {
+                            this.addMessage('user', '...');
+                        }
+                    };
+
+                    this.recognition.onend = () => {
+                        document.getElementById('listenBtn').classList.remove('listening');
+                    };
+                }
+            },
+
+            setupEventListeners() {
+                // Word buttons
+                document.querySelectorAll('.word-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const word = btn.dataset.word;
+                        this.practiceWord(word, btn);
+                    });
+                });
+
+                // Phrase buttons
+                document.querySelectorAll('.phrase-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const phrase = btn.dataset.phrase;
+                        this.practicePhrase(phrase);
+                    });
+                });
+
+                // Listen button
+                document.getElementById('listenBtn').addEventListener('click', () => {
+                    this.toggleListening();
+                });
+
+                // Reset button
+                document.getElementById('resetBtn').addEventListener('click', () => {
+                    this.resetSession();
+                });
+
+                // Modal button
+                document.getElementById('modalBtn').addEventListener('click', () => {
+                    document.getElementById('modalOverlay').classList.remove('active');
+                    this.closingMessage();
+                });
+            },
+
+            toggleListening() {
+                const btn = document.getElementById('listenBtn');
+                if (btn.classList.contains('listening')) {
+                    this.recognition.stop();
+                    btn.classList.remove('listening');
+                } else {
+                    this.recognition.start();
+                    btn.classList.add('listening');
+                }
+            },
+
+            handleUserSpeech(transcript) {
+                this.addMessage('user', transcript);
+
+                // Check for practiced words
+                for (const word of Object.keys(this.lexicon)) {
+                    if (transcript.includes(word)) {
+                        this.provideFeedback(word, true);
+                        return;
+                    }
+                }
+
+                // Check for phrases
+                for (const phrase of Object.keys(this.phrases)) {
+                    if (transcript.includes(phrase.toLowerCase())) {
+                        this.speak("Bene! Ora completa la frase con una parola. Quale ti piace?");
+                        return;
+                    }
+                }
+
+                this.speak("Non ho capito bene. Riprova! Ascolta: " + this.getRandomWord());
+            },
+
+            practiceWord(word, btn) {
+                const wordData = this.lexicon[word];
+                this.practicedWords.add(word);
+                this.updateWordCount();
+
+                // Show gesture hint
+                this.showGesture(word);
+
+                // Echo says the word
+                this.speak(word, true);
+                setTimeout(() => {
+                    this.speak(wordData.strategy);
+                }, 1500);
+            },
+
+            practicePhrase(phrase) {
+                const phraseData = this.phrases[phrase];
+                this.speak(phrase, true);
+                setTimeout(() => {
+                    this.speak("Ora aggiungi una parola! Quale scegli?");
+                }, 1000);
+            },
+
+            provideFeedback(word, isCorrect) {
+                const wordData = this.lexicon[word];
+                const btn = document.querySelector(`[data-word="${word}"]`);
+
+                if (isCorrect) {
+                    btn.classList.add('correct');
+                    setTimeout(() => btn.classList.remove('correct'), 1500);
+
+                    const praises = [
+                        `Sì! ${word} - l'hai detta proprio bene!`,
+                        `Ottimo! ${word} è perfetto!`,
+                        `Bravo! ${word}!`
+                    ];
+                    const praise = praises[Math.floor(Math.random() * praises.length)];
+                    this.speak(praise);
+
+                    setTimeout(() => {
+                        this.speak(wordData.gesture);
+                    }, 1500);
+                } else {
+                    btn.classList.add('needs-work');
+                    setTimeout(() => btn.classList.remove('needs-work'), 2000);
+
+                    const errorMsg = `Ascolta come la dico io: ${word}. ${wordData.strategy}. Ora proviamo insieme: ${word}... bravissimo!`;
+                    this.speak(errorMsg, true);
+                    setTimeout(() => {
+                        this.speak(word);
+                    }, 3000);
+                }
+
+                this.updateWordCount();
+            },
+
+            showGesture(word) {
+                const hint = document.getElementById('gestureHint');
+                const icon = document.getElementById('gestureIcon');
+                const text = document.getElementById('gestureText');
+
+                hint.style.display = 'flex';
+                icon.textContent = this.lexicon[word].icon;
+                text.textContent = `Mentre dici ${word.toUpperCase()}, ${this.lexicon[word].gesture.toLowerCase()}`;
+
+                setTimeout(() => {
+                    hint.style.display = 'none';
+                }, 8000);
+            },
+
+            speak(text, inEnglish = false) {
+                if (this.synthesis) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = inEnglish ? 'en-US' : 'it-IT';
+                    utterance.rate = 0.85;
+                    utterance.pitch = 1.1;
+                    utterance.volume = 1;
+
+                    // Try to get a friendly voice
+                    const voices = this.synthesis.getVoices();
+                    const italianVoice = voices.find(v => v.lang.startsWith('it'));
+                    if (italianVoice) {
+                        utterance.voice = italianVoice;
+                    }
+
+                    this.synthesis.speak(utterance);
+                }
+            },
+
+            addMessage(sender, text) {
+                const chatArea = document.getElementById('chatArea');
+                const msg = document.createElement('div');
+                msg.className = `message ${sender}`;
+                msg.innerHTML = `<div class="bubble">${text}</div>`;
+                chatArea.appendChild(msg);
+                chatArea.scrollTop = chatArea.scrollHeight;
+            },
+
+            getRandomWord() {
+                const words = Object.keys(this.lexicon);
+                return words[Math.floor(Math.random() * words.length)];
+            },
+
+            startTimer() {
+                const fill = document.getElementById('timerFill');
+                const icon = document.getElementById('sessionIcon');
+                const status = document.getElementById('sessionStatus');
+
+                const interval = setInterval(() => {
+                    this.currentTime--;
+
+                    const percentage = (this.currentTime / this.sessionTime) * 100;
+                    fill.style.width = percentage + '%';
+
+                    if (percentage <= 25) {
+                        fill.className = 'timer-fill danger';
+                        icon.className = 'session-icon';
+                        status.textContent = 'Ultimo minuto!';
+                    } else if (percentage <= 50) {
+                        fill.className = 'timer-fill warning';
+                        icon.className = 'session-icon warning';
+                    }
+
+                    if (this.currentTime <= 60 && this.currentTime > 0) {
+                        if (!this.warningShown) {
+                            document.getElementById('modalOverlay').classList.add('active');
+                            this.warningShown = true;
+                        }
+                    }
+
+                    if (this.currentTime <= 0) {
+                        clearInterval(interval);
+                        this.endSession();
+                    }
+                }, 1000);
+            },
+
+            closingMessage() {
+                const practiced = Array.from(this.practicedWords);
+                if (practiced.length > 0) {
+                    const wordsList = practiced.join(', ').toUpperCase();
+                    this.speak(`Oggi hai detto benissimo: ${wordsList}. Sei pronto!`);
+                    this.speak(`Ricorda: tu sai queste parole. Vai e fai sentire la tua voce!`);
+                } else {
+                    this.speak(`Quando vuoi, sono qui. Sei bravissimo!`);
+                }
+            },
+
+            endSession() {
+                this.speak("Sessione finita! Hai fatto un ottimo lavoro.");
+            },
+
+            resetSession() {
+                this.practicedWords.clear();
+                this.currentTime = this.sessionTime;
+                this.warningShown = false;
+                document.getElementById('chatArea').innerHTML = `
+                    <div class="message echo">
+                        <div class="bubble">Ciao! Sono Echo, il tuo amico delle parole inglesi. Oggi ci esercitiamo insieme. Quale parola vuoi provare?</div>
+                    </div>
+                `;
+                document.getElementById('timerFill').style.width = '100%';
+                document.getElementById('timerFill').className = 'timer-fill';
+                document.getElementById('sessionIcon').className = 'session-icon';
+                document.getElementById('sessionStatus').textContent = 'Sessione attiva';
+                this.updateWordCount();
+                this.speak("Ricominiciamo! Quale parola vuoi provare?");
+            },
+
+            updateWordCount() {
+                document.getElementById('wordCount').textContent = `Parole: ${this.practicedWords.size}/8`;
+            }
+        };
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            Echo.init();
+        });
+    </script>
+</body>
+</html>
